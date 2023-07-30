@@ -101,6 +101,9 @@ type RateLimitInterval string
 // AccountType define the account types
 type AccountType string
 
+// RepayStatus define the repayment status types
+type RepayStatus string
+
 // Endpoints
 const (
 	baseAPIMainURL    = "https://api.binance.com"
@@ -236,6 +239,10 @@ const (
 	AccountTypeIsolatedMargin AccountType = "ISOLATED_MARGIN"
 	AccountTypeUSDTFuture     AccountType = "USDT_FUTURE"
 	AccountTypeCoinFuture     AccountType = "COIN_FUTURE"
+
+	RepayStatusRepaid   RepayStatus = "Repaid"
+	RepayStatusRepaying RepayStatus = "Repaying"
+	RepayStatusFailed   RepayStatus = "Failed"
 )
 
 func currentTimestamp() int64 {
@@ -1008,4 +1015,9 @@ func (c *Client) NewManagedSubAccountAssetsService() *ManagedSubAccountAssetsSer
 // NewSubAccountFuturesAccountService Get Detail on Sub-account's Futures Account (For Master Account)
 func (c *Client) NewSubAccountFuturesAccountService() *SubAccountFuturesAccountService {
 	return &SubAccountFuturesAccountService{c: c}
+}
+
+// NewVIPLoanRepayService init creating VIP loan repay service
+func (c *Client) NewVIPLoanRepayService() *VIPLoanRepayService {
+	return &VIPLoanRepayService{c: c}
 }
