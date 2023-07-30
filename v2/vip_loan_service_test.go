@@ -56,3 +56,58 @@ func (s *vipLoanServiceTestSuite) TestRepay() {
 		RepayStatus:        RepayStatusRepaid,
 	}, res)
 }
+
+func (s *vipLoanServiceTestSuite) TestBorrow() {
+	data := []byte(`
+		{
+			"loanAccountId": "12345678",
+			"requestId": "12345678",
+			"loanCoin": "BTC",
+			"loanAmount": "100.55",
+			"collateralAccountId": "123456781,123456782,123456783",
+			"collateralCoin": "BUSD,USDT,ETH",
+			"loanTerm": "30"
+		}
+	`)
+	s.mockDo(data, nil)
+	defer s.assertDo()
+
+	loanAccountID := "12345678"
+	loanCoin := "BTC"
+	loanAmount := "100.55"
+	collateralAccountID := "123456781,123456782,123456783"
+	collateralCoin := "BUSD,USDT,ETH"
+	loanTerm := 30
+	s.assertReq(func(r *request) {
+		e := newSignedRequest().setParams(params{
+			"loanAccountId":       loanAccountID,
+			"loanCoin":            loanCoin,
+			"loanAmount":          loanAmount,
+			"collateralAccountId": collateralAccountID,
+			"collateralCoin":      collateralCoin,
+			"loanTerm":            loanTerm,
+		})
+		s.assertRequestEqual(e, r)
+	})
+
+	res, err := s.client.NewVIPLoanBorrowService().
+		LoanAccountID(loanAccountID).
+		LoanCoin(loanCoin).
+		LoanAmount(loanAmount).
+		CollateralAccountId(collateralAccountID).
+		CollateralCoin(collateralCoin).
+		LoanTerm(loanTerm).
+		Do(newContext())
+
+	r := s.r()
+	r.NoError(err)
+	r.Equal(&VIPLoanBorrowResponse{
+		LoanAccountId:       "12345678",
+		RequestId:           "12345678",
+		LoanCoin:            "BTC",
+		LoanAmount:          "100.55",
+		CollateralAccountId: "123456781,123456782,123456783",
+		CollateralCoin:      "BUSD,USDT,ETH",
+		LoanTerm:            "30",
+	}, res)
+}

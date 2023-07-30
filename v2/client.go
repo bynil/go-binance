@@ -1021,3 +1021,8 @@ func (c *Client) NewSubAccountFuturesAccountService() *SubAccountFuturesAccountS
 func (c *Client) NewVIPLoanRepayService() *VIPLoanRepayService {
 	return &VIPLoanRepayService{c: c}
 }
+
+// NewVIPLoanBorrowService create a borrow request of VIP loan
+func (c *Client) NewVIPLoanBorrowService() *VIPLoanBorrowService {
+	return &VIPLoanBorrowService{c: c}
+}
