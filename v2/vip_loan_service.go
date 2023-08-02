@@ -141,7 +141,7 @@ type VIPLoanBorrowResponse struct {
 
 // VIPLoanOngoingOrdersService submits a borrowing request for VIP loan.
 //
-// See https://binance-docs.github.io/apidocs/spot/en/#vip-user_data
+// See https://binance-docs.github.io/apidocs/spot/en/#get-vip-loan-ongoing-orders-user_data
 type VIPLoanOngoingOrdersService struct {
 	c                   *Client
 	orderID             *string
@@ -239,10 +239,10 @@ type VIPLoanOngoingOrder struct {
 	ExpirationTime                   int64  `json:"expirationTime"`
 }
 
-// VIPLoanRepayHistoryService submits a borrowing request for VIP loan.
+// VIPLoanRepaymentHistoryService submits a borrowing request for VIP loan.
 //
-// See https://binance-docs.github.io/apidocs/spot/en/#vip-user_data-2
-type VIPLoanRepayHistoryService struct {
+// See https://binance-docs.github.io/apidocs/spot/en/#get-vip-loan-repayment-history-user_data
+type VIPLoanRepaymentHistoryService struct {
 	c         *Client
 	orderID   *string
 	loanCoin  *string
@@ -252,38 +252,38 @@ type VIPLoanRepayHistoryService struct {
 	limit     *int
 }
 
-func (s *VIPLoanRepayHistoryService) OrderID(v string) *VIPLoanRepayHistoryService {
+func (s *VIPLoanRepaymentHistoryService) OrderID(v string) *VIPLoanRepaymentHistoryService {
 	s.orderID = &v
 	return s
 }
 
-func (s *VIPLoanRepayHistoryService) LoanCoin(v string) *VIPLoanRepayHistoryService {
+func (s *VIPLoanRepaymentHistoryService) LoanCoin(v string) *VIPLoanRepaymentHistoryService {
 	s.loanCoin = &v
 	return s
 }
 
-func (s *VIPLoanRepayHistoryService) StartTime(v int64) *VIPLoanRepayHistoryService {
+func (s *VIPLoanRepaymentHistoryService) StartTime(v int64) *VIPLoanRepaymentHistoryService {
 	s.startTime = &v
 	return s
 }
 
-func (s *VIPLoanRepayHistoryService) EndTime(v int64) *VIPLoanRepayHistoryService {
+func (s *VIPLoanRepaymentHistoryService) EndTime(v int64) *VIPLoanRepaymentHistoryService {
 	s.endTime = &v
 	return s
 }
 
-func (s *VIPLoanRepayHistoryService) Current(v int) *VIPLoanRepayHistoryService {
+func (s *VIPLoanRepaymentHistoryService) Current(v int) *VIPLoanRepaymentHistoryService {
 	s.current = &v
 	return s
 }
 
-func (s *VIPLoanRepayHistoryService) Limit(v int) *VIPLoanRepayHistoryService {
+func (s *VIPLoanRepaymentHistoryService) Limit(v int) *VIPLoanRepaymentHistoryService {
 	s.limit = &v
 	return s
 }
 
 // Do sends the request.
-func (s *VIPLoanRepayHistoryService) Do(ctx context.Context) (*VIPLoanRepayHistoryResponse, error) {
+func (s *VIPLoanRepaymentHistoryService) Do(ctx context.Context) (*VIPLoanRepayHistoryResponse, error) {
 	r := &request{
 		method:   http.MethodGet,
 		endpoint: "/sapi/v1/loan/vip/repay/history",
@@ -333,4 +333,55 @@ type VIPLoanRepayHistory struct {
 	RepayStatus    string `json:"repayStatus"`
 	RepayTime      string `json:"repayTime"`
 	OrderID        string `json:"orderId"`
+}
+
+// VIPLoanRenewService submits a repayment request for VIP loan.
+//
+// See https://binance-docs.github.io/apidocs/spot/en/#vip-loan-renew-trade
+type VIPLoanRenewService struct {
+	c        *Client
+	orderID  string
+	loanTerm int
+}
+
+func (s *VIPLoanRenewService) OrderID(v string) *VIPLoanRenewService {
+	s.orderID = v
+	return s
+}
+
+func (s *VIPLoanRenewService) LoanTerm(v int) *VIPLoanRenewService {
+	s.loanTerm = v
+	return s
+}
+
+// Do sends the request.
+func (s *VIPLoanRenewService) Do(ctx context.Context) (*VIPLoanRenewResponse, error) {
+	r := &request{
+		method:   http.MethodPost,
+		endpoint: "/sapi/v1/loan/vip/renew",
+		secType:  secTypeSigned,
+	}
+	r.setParam("orderId", s.orderID)
+	r.setParam("loanTerm", s.loanTerm)
+
+	data, err := s.c.callAPI(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &VIPLoanRenewResponse{}
+	if err := json.Unmarshal(data, res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+type VIPLoanRenewResponse struct {
+	LoanAccountID       string `json:"loanAccountId"`
+	LoanCoin            string `json:"loanCoin"`
+	LoanAmount          string `json:"loanAmount"`
+	CollateralAccountID string `json:"collateralAccountId"`
+	CollateralCoin      string `json:"collateralCoin"`
+	LoanTerm            string `json:"loanTerm"`
 }

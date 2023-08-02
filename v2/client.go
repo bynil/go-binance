@@ -1027,12 +1027,17 @@ func (c *Client) NewVIPLoanBorrowService() *VIPLoanBorrowService {
 	return &VIPLoanBorrowService{c: c}
 }
 
-// NewVIPLoanOngoingOrdersService create a query request of ongoing orders on VIP loan
+// NewVIPLoanOngoingOrdersService query ongoing orders of VIP loan
 func (c *Client) NewVIPLoanOngoingOrdersService() *VIPLoanOngoingOrdersService {
 	return &VIPLoanOngoingOrdersService{c: c}
 }
 
-// NewVIPLoanRepayHistoryService create a query request of repay history on VIP loan
-func (c *Client) NewVIPLoanRepayHistoryService() *VIPLoanRepayHistoryService {
-	return &VIPLoanRepayHistoryService{c: c}
+// NewVIPLoanRepayHistoryService query repayment history of VIP loan
+func (c *Client) NewVIPLoanRepayHistoryService() *VIPLoanRepaymentHistoryService {
+	return &VIPLoanRepaymentHistoryService{c: c}
+}
+
+// NewVIPLoanRenewService renew a borrow order of VIP loan
+func (c *Client) NewVIPLoanRenewService() *VIPLoanRenewService {
+	return &VIPLoanRenewService{c: c}
 }
