@@ -313,7 +313,7 @@ func (s *vipLoanServiceTestSuite) TestVIPLoanCollateralAccount() {
 		s.assertRequestEqual(e, r)
 	})
 
-	res, err := s.client.NewVIPLoanCollateralService().
+	res, err := s.client.NewVIPLoanCollateralAccountService().
 		OrderID(orderID).
 		CollateralAccountID(collateralAccountID).
 		Do(newContext())
@@ -381,6 +381,60 @@ func (s *vipLoanServiceTestSuite) TestVIPLoanLoanable() {
 				MinLimit:             "100",
 				MaxLimit:             "1000000",
 				VipLevel:             1,
+			},
+		},
+		Total: 1,
+	}, res)
+}
+
+func (s *vipLoanServiceTestSuite) TestVIPLoanCollateral() {
+	data := []byte(`
+		{
+			"rows": [
+				{
+					"collateralCoin": "BUSD",
+					"_1stCollateralRatio": "100%",
+					"_1stCollateralRange": "1-10000000",
+					"_2ndCollateralRatio": "80%",
+					"_2ndCollateralRange": "10000000-100000000",
+					"_3rdCollateralRatio": "60%",
+					"_3rdCollateralRange": "100000000-1000000000",
+					"_4thCollateralRatio": "0%",
+					"_4thCollateralRange": ">10000000000"
+				}
+			],
+			"total": 1
+		}
+	`)
+	s.mockDo(data, nil)
+	defer s.assertDo()
+
+	collateralCoin := "BTC"
+	s.assertReq(func(r *request) {
+		e := newSignedRequest().setParams(params{
+			"collateralCoin": collateralCoin,
+		})
+		s.assertRequestEqual(e, r)
+	})
+
+	res, err := s.client.NewVIPLoanCollateralService().
+		CollateralCoin(collateralCoin).
+		Do(newContext())
+
+	r := s.r()
+	r.NoError(err)
+	r.Equal(&VIPLoanCollateralServiceResponse{
+		Rows: []VIPLoanCollateralCoin{
+			{
+				CollateralCoin:     "BUSD",
+				CollateralRatio1st: "100%",
+				CollateralRange1st: "1-10000000",
+				CollateralRatio2nd: "80%",
+				CollateralRange2nd: "10000000-100000000",
+				CollateralRatio3rd: "60%",
+				CollateralRange3rd: "100000000-1000000000",
+				CollateralRatio4th: "0%",
+				CollateralRange4th: ">10000000000",
 			},
 		},
 		Total: 1,

@@ -1042,12 +1042,17 @@ func (c *Client) NewVIPLoanRenewService() *VIPLoanRenewService {
 	return &VIPLoanRenewService{c: c}
 }
 
-// NewVIPLoanCollateralService query collateral accounts of VIP loan
-func (c *Client) NewVIPLoanCollateralService() *VIPLoanCollateralService {
-	return &VIPLoanCollateralService{c: c}
+// NewVIPLoanCollateralAccountService query collateral accounts of VIP loan
+func (c *Client) NewVIPLoanCollateralAccountService() *VIPLoanCollateralAccountService {
+	return &VIPLoanCollateralAccountService{c: c}
 }
 
 // NewVIPLoanLoanableService query loanable coins of VIP loan
 func (c *Client) NewVIPLoanLoanableService() *VIPLoanLoanableService {
 	return &VIPLoanLoanableService{c: c}
+}
+
+// NewVIPLoanCollateralService query collateral coins of VIP loan
+func (c *Client) NewVIPLoanCollateralService() *VIPLoanCollateralService {
+	return &VIPLoanCollateralService{c: c}
 }

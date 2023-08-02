@@ -386,27 +386,27 @@ type VIPLoanRenewResponse struct {
 	LoanTerm            string `json:"loanTerm"`
 }
 
-// VIPLoanCollateralService query collateral accounts of VIP loan.
+// VIPLoanCollateralAccountService query collateral accounts of VIP loan.
 //
 // See https://binance-docs.github.io/apidocs/spot/en/#check-locked-value-of-vip-collateral-account-user_data
-type VIPLoanCollateralService struct {
+type VIPLoanCollateralAccountService struct {
 	c                   *Client
 	orderID             *string
 	collateralAccountID *string
 }
 
-func (s *VIPLoanCollateralService) OrderID(v string) *VIPLoanCollateralService {
+func (s *VIPLoanCollateralAccountService) OrderID(v string) *VIPLoanCollateralAccountService {
 	s.orderID = &v
 	return s
 }
 
-func (s *VIPLoanCollateralService) CollateralAccountID(v string) *VIPLoanCollateralService {
+func (s *VIPLoanCollateralAccountService) CollateralAccountID(v string) *VIPLoanCollateralAccountService {
 	s.collateralAccountID = &v
 	return s
 }
 
 // Do sends the request.
-func (s *VIPLoanCollateralService) Do(ctx context.Context) (*VIPLoanCollateralResponse, error) {
+func (s *VIPLoanCollateralAccountService) Do(ctx context.Context) (*VIPLoanCollateralResponse, error) {
 	r := &request{
 		method:   http.MethodGet,
 		endpoint: "/sapi/v1/loan/vip/collateral/account",
@@ -503,4 +503,58 @@ type VIPLoanLoanableCoin struct {
 	MinLimit             string `json:"minLimit"`
 	MaxLimit             string `json:"maxLimit"`
 	VipLevel             int    `json:"vipLevel"`
+}
+
+// VIPLoanCollateralService query repayment history of VIP loan.
+//
+// See https://binance-docs.github.io/apidocs/spot/en/#get-collateral-asset-data-user_data
+type VIPLoanCollateralService struct {
+	c              *Client
+	collateralCoin *string
+}
+
+func (s *VIPLoanCollateralService) CollateralCoin(v string) *VIPLoanCollateralService {
+	s.collateralCoin = &v
+	return s
+}
+
+// Do sends the request.
+func (s *VIPLoanCollateralService) Do(ctx context.Context) (*VIPLoanCollateralServiceResponse, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/sapi/v1/loan/vip/collateral/data",
+		secType:  secTypeSigned,
+	}
+	if s.collateralCoin != nil {
+		r.setParam("collateralCoin", *s.collateralCoin)
+	}
+
+	data, err := s.c.callAPI(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &VIPLoanCollateralServiceResponse{}
+	if err := json.Unmarshal(data, res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+type VIPLoanCollateralServiceResponse struct {
+	Rows  []VIPLoanCollateralCoin `json:"rows"`
+	Total int                     `json:"total"`
+}
+
+type VIPLoanCollateralCoin struct {
+	CollateralCoin     string `json:"collateralCoin"`
+	CollateralRatio1st string `json:"_1stCollateralRatio"`
+	CollateralRange1st string `json:"_1stCollateralRange"`
+	CollateralRatio2nd string `json:"_2ndCollateralRatio"`
+	CollateralRange2nd string `json:"_2ndCollateralRange"`
+	CollateralRatio3rd string `json:"_3rdCollateralRatio"`
+	CollateralRange3rd string `json:"_3rdCollateralRange"`
+	CollateralRatio4th string `json:"_4thCollateralRatio"`
+	CollateralRange4th string `json:"_4thCollateralRange"`
 }
