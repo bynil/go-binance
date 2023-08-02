@@ -101,8 +101,11 @@ type RateLimitInterval string
 // AccountType define the account types
 type AccountType string
 
-// RepayStatus define the repayment status types
-type RepayStatus string
+// VIPLoanRepayStatus define the repayment status types
+type VIPLoanRepayStatus string
+
+// VIPLoanApplicationStatus define the application status types
+type VIPLoanApplicationStatus string
 
 // Endpoints
 const (
@@ -240,9 +243,18 @@ const (
 	AccountTypeUSDTFuture     AccountType = "USDT_FUTURE"
 	AccountTypeCoinFuture     AccountType = "COIN_FUTURE"
 
-	RepayStatusRepaid   RepayStatus = "Repaid"
-	RepayStatusRepaying RepayStatus = "Repaying"
-	RepayStatusFailed   RepayStatus = "Failed"
+	VIPLoanRepayStatusRepaid   VIPLoanRepayStatus = "Repaid"
+	VIPLoanRepayStatusRepaying VIPLoanRepayStatus = "Repaying"
+	VIPLoanRepayStatusFailed   VIPLoanRepayStatus = "Failed"
+
+	VIPLoanApplicationStatusAccruingInterest VIPLoanApplicationStatus = "Accruing_Interest"
+	VIPLoanApplicationStatusOverdue          VIPLoanApplicationStatus = "Overdue"
+	VIPLoanApplicationStatusLiquidating      VIPLoanApplicationStatus = "Liquidating"
+	VIPLoanApplicationStatusRepaying         VIPLoanApplicationStatus = "Repaying"
+	VIPLoanApplicationStatusRepaid           VIPLoanApplicationStatus = "Repaid"
+	VIPLoanApplicationStatusLiquidated       VIPLoanApplicationStatus = "Liquidated"
+	VIPLoanApplicationStatusPending          VIPLoanApplicationStatus = "Pending"
+	VIPLoanApplicationStatusFailed           VIPLoanApplicationStatus = "Failed"
 )
 
 func currentTimestamp() int64 {
@@ -1055,4 +1067,9 @@ func (c *Client) NewVIPLoanLoanableService() *VIPLoanLoanableService {
 // NewVIPLoanCollateralService query collateral coins of VIP loan
 func (c *Client) NewVIPLoanCollateralService() *VIPLoanCollateralService {
 	return &VIPLoanCollateralService{c: c}
+}
+
+// NewVIPLoanApplicationStatusService query applications status of VIP loan
+func (c *Client) NewVIPLoanApplicationStatusService() *VIPLoanApplicationStatusService {
+	return &VIPLoanApplicationStatusService{c: c}
 }

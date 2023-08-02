@@ -49,13 +49,13 @@ func (s *VIPLoanRepayService) Do(ctx context.Context) (*VIPLoanRepayResponse, er
 }
 
 type VIPLoanRepayResponse struct {
-	LoanCoin           string      `json:"loanCoin"`
-	RepayAmount        string      `json:"repayAmount"`
-	RemainingPrincipal string      `json:"remainingPrincipal"`
-	RemainingInterest  string      `json:"remainingInterest"`
-	CollateralCoin     string      `json:"collateralCoin"`
-	CurrentLTV         string      `json:"currentLTV"`
-	RepayStatus        RepayStatus `json:"repayStatus"` // Repaid, Repaying, Failed
+	LoanCoin           string             `json:"loanCoin"`
+	RepayAmount        string             `json:"repayAmount"`
+	RemainingPrincipal string             `json:"remainingPrincipal"`
+	RemainingInterest  string             `json:"remainingInterest"`
+	CollateralCoin     string             `json:"collateralCoin"`
+	CurrentLTV         string             `json:"currentLTV"`
+	RepayStatus        VIPLoanRepayStatus `json:"repayStatus"` // Repaid, Repaying, Failed
 }
 
 // VIPLoanBorrowService submits a borrowing request for VIP loan.
@@ -327,12 +327,12 @@ type VIPLoanRepayHistoryResponse struct {
 }
 
 type VIPLoanRepayHistory struct {
-	LoanCoin       string `json:"loanCoin"`
-	RepayAmount    string `json:"repayAmount"`
-	CollateralCoin string `json:"collateralCoin"`
-	RepayStatus    string `json:"repayStatus"`
-	RepayTime      string `json:"repayTime"`
-	OrderID        string `json:"orderId"`
+	LoanCoin       string             `json:"loanCoin"`
+	RepayAmount    string             `json:"repayAmount"`
+	CollateralCoin string             `json:"collateralCoin"`
+	RepayStatus    VIPLoanRepayStatus `json:"repayStatus"`
+	RepayTime      string             `json:"repayTime"`
+	OrderID        string             `json:"orderId"`
 }
 
 // VIPLoanRenewService submits a renewal request for VIP loan.
@@ -557,4 +557,67 @@ type VIPLoanCollateralCoin struct {
 	CollateralRange3rd string `json:"_3rdCollateralRange"`
 	CollateralRatio4th string `json:"_4thCollateralRatio"`
 	CollateralRange4th string `json:"_4thCollateralRange"`
+}
+
+// VIPLoanApplicationStatusService query ongoing orders of VIP loan.
+//
+// See https://binance-docs.github.io/apidocs/spot/en/#query-application-status-user_data
+type VIPLoanApplicationStatusService struct {
+	c       *Client
+	current *int
+	limit   *int
+}
+
+func (s *VIPLoanApplicationStatusService) Current(v int) *VIPLoanApplicationStatusService {
+	s.current = &v
+	return s
+}
+
+func (s *VIPLoanApplicationStatusService) Limit(v int) *VIPLoanApplicationStatusService {
+	s.limit = &v
+	return s
+}
+
+// Do sends the request.
+func (s *VIPLoanApplicationStatusService) Do(ctx context.Context) (*VIPLoanApplicationStatusResponse, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/sapi/v1/loan/vip/request/data",
+		secType:  secTypeSigned,
+	}
+	if s.current != nil {
+		r.setParam("current", *s.current)
+	}
+	if s.limit != nil {
+		r.setParam("limit", *s.limit)
+	}
+
+	data, err := s.c.callAPI(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &VIPLoanApplicationStatusResponse{}
+	if err := json.Unmarshal(data, res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+type VIPLoanApplicationStatusResponse struct {
+	Rows  []VIPLoanApplicationStatusData `json:"rows"`
+	Total int                            `json:"total"`
+}
+
+type VIPLoanApplicationStatusData struct {
+	LoanAccountID       string `json:"loanAccountId"`
+	OrderID             string `json:"orderId"`
+	RequestID           string `json:"requestId"`
+	LoanCoin            string `json:"loanCoin"`
+	LoanAmount          string `json:"loanAmount"`
+	CollateralAccountID string `json:"collateralAccountId"`
+	CollateralCoin      string `json:"collateralCoin"`
+	LoanTerm            string `json:"loanTerm"`
+	Status              string `json:"status"`
 }
