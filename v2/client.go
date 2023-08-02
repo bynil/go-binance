@@ -1041,3 +1041,8 @@ func (c *Client) NewVIPLoanRepayHistoryService() *VIPLoanRepaymentHistoryService
 func (c *Client) NewVIPLoanRenewService() *VIPLoanRenewService {
 	return &VIPLoanRenewService{c: c}
 }
+
+// NewVIPLoanCollateralService query collateral accounts of VIP loan
+func (c *Client) NewVIPLoanCollateralService() *VIPLoanCollateralService {
+	return &VIPLoanCollateralService{c: c}
+}

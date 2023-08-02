@@ -286,3 +286,48 @@ func (s *vipLoanServiceTestSuite) TestVIPLoanRenew() {
 		LoanTerm:            "30",
 	}, res)
 }
+
+func (s *vipLoanServiceTestSuite) TestVIPLoanCollateralAccount() {
+	data := []byte(`
+		{
+			"rows": [
+				{
+					"collateralAccountId": "12345678",
+					"collateralCoin": "BNB,BTC,ETH",
+					"collateralValue": "500.27565492"
+				}
+			],
+			"total": 2
+		}
+	`)
+	s.mockDo(data, nil)
+	defer s.assertDo()
+
+	orderID := "756783308056935434"
+	collateralAccountID := "123"
+	s.assertReq(func(r *request) {
+		e := newSignedRequest().setParams(params{
+			"orderId":             orderID,
+			"collateralAccountId": collateralAccountID,
+		})
+		s.assertRequestEqual(e, r)
+	})
+
+	res, err := s.client.NewVIPLoanCollateralService().
+		OrderID(orderID).
+		CollateralAccountID(collateralAccountID).
+		Do(newContext())
+
+	r := s.r()
+	r.NoError(err)
+	r.Equal(&VIPLoanCollateralResponse{
+		Rows: []VIPLoanCollateral{
+			{
+				CollateralAccountID: "12345678",
+				CollateralCoin:      "BNB,BTC,ETH",
+				CollateralValue:     "500.27565492",
+			},
+		},
+		Total: 2,
+	}, res)
+}
