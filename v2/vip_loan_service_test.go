@@ -331,3 +331,58 @@ func (s *vipLoanServiceTestSuite) TestVIPLoanCollateralAccount() {
 		Total: 2,
 	}, res)
 }
+
+func (s *vipLoanServiceTestSuite) TestVIPLoanLoanable() {
+	data := []byte(`
+		{
+			"rows": [
+				{
+					"loanCoin": "BUSD",
+					"_30dDailyInterestRate": "0.000136",
+					"_30dYearlyInterestRate": "0.03450",
+					"_60dDailyInterestRate": "0.000145",
+					"_60dYearlyInterestRate": "0.04103",
+					"minLimit": "100",
+					"maxLimit": "1000000",
+					"vipLevel": 1
+				}
+			],
+			"total": 1
+		}
+	`)
+	s.mockDo(data, nil)
+	defer s.assertDo()
+
+	loanCoin := "BTC"
+	vipLevel := 4
+	s.assertReq(func(r *request) {
+		e := newSignedRequest().setParams(params{
+			"loanCoin": loanCoin,
+			"vipLevel": vipLevel,
+		})
+		s.assertRequestEqual(e, r)
+	})
+
+	res, err := s.client.NewVIPLoanLoanableService().
+		LoanCoin(loanCoin).
+		VipLevel(vipLevel).
+		Do(newContext())
+
+	r := s.r()
+	r.NoError(err)
+	r.Equal(&VIPLoanLoanableResponse{
+		Rows: []VIPLoanLoanableCoin{
+			{
+				LoanCoin:             "BUSD",
+				DailyInterestRate30:  "0.000136",
+				YearlyInterestRate30: "0.03450",
+				DailyInterestRate60:  "0.000145",
+				YearlyInterestRate60: "0.04103",
+				MinLimit:             "100",
+				MaxLimit:             "1000000",
+				VipLevel:             1,
+			},
+		},
+		Total: 1,
+	}, res)
+}

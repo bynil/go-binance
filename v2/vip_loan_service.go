@@ -442,3 +442,65 @@ type VIPLoanCollateral struct {
 	CollateralCoin      string `json:"collateralCoin"`
 	CollateralValue     string `json:"collateralValue"`
 }
+
+// VIPLoanLoanableService query loanable coins of VIP loan.
+//
+// See https://binance-docs.github.io/apidocs/spot/en/#get-loanable-assets-data-user_data
+type VIPLoanLoanableService struct {
+	c        *Client
+	loanCoin *string
+	vipLevel *int
+}
+
+func (s *VIPLoanLoanableService) LoanCoin(v string) *VIPLoanLoanableService {
+	s.loanCoin = &v
+	return s
+}
+
+func (s *VIPLoanLoanableService) VipLevel(v int) *VIPLoanLoanableService {
+	s.vipLevel = &v
+	return s
+}
+
+// Do sends the request.
+func (s *VIPLoanLoanableService) Do(ctx context.Context) (*VIPLoanLoanableResponse, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/sapi/v1/loan/vip/loanable/data",
+		secType:  secTypeSigned,
+	}
+	if s.loanCoin != nil {
+		r.setParam("loanCoin", *s.loanCoin)
+	}
+	if s.vipLevel != nil {
+		r.setParam("vipLevel", *s.vipLevel)
+	}
+
+	data, err := s.c.callAPI(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &VIPLoanLoanableResponse{}
+	if err := json.Unmarshal(data, res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+type VIPLoanLoanableResponse struct {
+	Rows  []VIPLoanLoanableCoin `json:"rows"`
+	Total int                   `json:"total"`
+}
+
+type VIPLoanLoanableCoin struct {
+	LoanCoin             string `json:"loanCoin"`
+	DailyInterestRate30  string `json:"_30dDailyInterestRate"`
+	YearlyInterestRate30 string `json:"_30dYearlyInterestRate"`
+	DailyInterestRate60  string `json:"_60dDailyInterestRate"`
+	YearlyInterestRate60 string `json:"_60dYearlyInterestRate"`
+	MinLimit             string `json:"minLimit"`
+	MaxLimit             string `json:"maxLimit"`
+	VipLevel             int    `json:"vipLevel"`
+}

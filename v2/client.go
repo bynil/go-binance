@@ -1046,3 +1046,8 @@ func (c *Client) NewVIPLoanRenewService() *VIPLoanRenewService {
 func (c *Client) NewVIPLoanCollateralService() *VIPLoanCollateralService {
 	return &VIPLoanCollateralService{c: c}
 }
+
+// NewVIPLoanLoanableService query loanable coins of VIP loan
+func (c *Client) NewVIPLoanLoanableService() *VIPLoanLoanableService {
+	return &VIPLoanLoanableService{c: c}
+}
