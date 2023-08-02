@@ -14,7 +14,7 @@ func TestVIPLoanService(t *testing.T) {
 	suite.Run(t, new(vipLoanServiceTestSuite))
 }
 
-func (s *vipLoanServiceTestSuite) TestRepay() {
+func (s *vipLoanServiceTestSuite) TestVIPLoanRepay() {
 	data := []byte(`
 		{
 			"loanCoin": "BUSD",
@@ -57,7 +57,7 @@ func (s *vipLoanServiceTestSuite) TestRepay() {
 	}, res)
 }
 
-func (s *vipLoanServiceTestSuite) TestBorrow() {
+func (s *vipLoanServiceTestSuite) TestVIPLoanBorrow() {
 	data := []byte(`
 		{
 			"loanAccountId": "12345678",
@@ -112,7 +112,7 @@ func (s *vipLoanServiceTestSuite) TestBorrow() {
 	}, res)
 }
 
-func (s *vipLoanServiceTestSuite) TestOngoingOrders() {
+func (s *vipLoanServiceTestSuite) TestVIPLoanOngoingOrders() {
 	data := []byte(`
 		{
 			"rows": [
@@ -177,6 +177,69 @@ func (s *vipLoanServiceTestSuite) TestOngoingOrders() {
 				LockedCollateralValue:            "25000.27565492",
 				CurrentLTV:                       "0.57",
 				ExpirationTime:                   1575018510000,
+			},
+		},
+		Total: 1,
+	}, res)
+}
+
+func (s *vipLoanServiceTestSuite) TestVIPLoanRepayHistory() {
+	data := []byte(`
+		{
+			"rows": [
+				{
+					"loanCoin": "BUSD",
+					"repayAmount": "10000",
+					"collateralCoin": "BNB,BTC,ETH",
+					"repayStatus": "Repaid",
+					"repayTime": "1575018510000",
+					"orderId": "756783308056935434"
+				}
+			],
+			"total": 1
+		}
+	`)
+	s.mockDo(data, nil)
+	defer s.assertDo()
+
+	orderID := "12345678"
+	loanCoin := "BTC"
+	startTime := int64(1691005350)
+	endTime := int64(1691005360)
+	limit := 20
+	current := 30
+	s.assertReq(func(r *request) {
+		e := newSignedRequest().setParams(params{
+			"orderId":   orderID,
+			"loanCoin":  loanCoin,
+			"startTime": startTime,
+			"endTime":   endTime,
+			"current":   current,
+			"limit":     limit,
+		})
+		s.assertRequestEqual(e, r)
+	})
+
+	res, err := s.client.NewVIPLoanRepayHistoryService().
+		OrderID(orderID).
+		LoanCoin(loanCoin).
+		StartTime(startTime).
+		EndTime(endTime).
+		Current(current).
+		Limit(limit).
+		Do(newContext())
+
+	r := s.r()
+	r.NoError(err)
+	r.Equal(&VIPLoanRepayHistoryResponse{
+		Rows: []VIPLoanRepayHistory{
+			{
+				LoanCoin:       "BUSD",
+				RepayAmount:    "10000",
+				CollateralCoin: "BNB,BTC,ETH",
+				RepayStatus:    "Repaid",
+				RepayTime:      "1575018510000",
+				OrderID:        "756783308056935434",
 			},
 		},
 		Total: 1,

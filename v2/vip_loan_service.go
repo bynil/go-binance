@@ -238,3 +238,99 @@ type VIPLoanOngoingOrder struct {
 	CurrentLTV                       string `json:"currentLTV"`
 	ExpirationTime                   int64  `json:"expirationTime"`
 }
+
+// VIPLoanRepayHistoryService submits a borrowing request for VIP loan.
+//
+// See https://binance-docs.github.io/apidocs/spot/en/#vip-user_data-2
+type VIPLoanRepayHistoryService struct {
+	c         *Client
+	orderID   *string
+	loanCoin  *string
+	startTime *int64
+	endTime   *int64
+	current   *int
+	limit     *int
+}
+
+func (s *VIPLoanRepayHistoryService) OrderID(v string) *VIPLoanRepayHistoryService {
+	s.orderID = &v
+	return s
+}
+
+func (s *VIPLoanRepayHistoryService) LoanCoin(v string) *VIPLoanRepayHistoryService {
+	s.loanCoin = &v
+	return s
+}
+
+func (s *VIPLoanRepayHistoryService) StartTime(v int64) *VIPLoanRepayHistoryService {
+	s.startTime = &v
+	return s
+}
+
+func (s *VIPLoanRepayHistoryService) EndTime(v int64) *VIPLoanRepayHistoryService {
+	s.endTime = &v
+	return s
+}
+
+func (s *VIPLoanRepayHistoryService) Current(v int) *VIPLoanRepayHistoryService {
+	s.current = &v
+	return s
+}
+
+func (s *VIPLoanRepayHistoryService) Limit(v int) *VIPLoanRepayHistoryService {
+	s.limit = &v
+	return s
+}
+
+// Do sends the request.
+func (s *VIPLoanRepayHistoryService) Do(ctx context.Context) (*VIPLoanRepayHistoryResponse, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/sapi/v1/loan/vip/repay/history",
+		secType:  secTypeSigned,
+	}
+	if s.orderID != nil {
+		r.setParam("orderId", *s.orderID)
+	}
+	if s.loanCoin != nil {
+		r.setParam("loanCoin", *s.loanCoin)
+	}
+	if s.startTime != nil {
+		r.setParam("startTime", *s.startTime)
+	}
+	if s.endTime != nil {
+		r.setParam("endTime", *s.endTime)
+	}
+	if s.current != nil {
+		r.setParam("current", *s.current)
+	}
+	if s.limit != nil {
+		r.setParam("limit", *s.limit)
+	}
+
+	data, err := s.c.callAPI(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &VIPLoanRepayHistoryResponse{}
+	if err := json.Unmarshal(data, res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+type VIPLoanRepayHistoryResponse struct {
+	Rows  []VIPLoanRepayHistory `json:"rows"`
+	Total int                   `json:"total"`
+}
+
+type VIPLoanRepayHistory struct {
+	LoanCoin       string `json:"loanCoin"`
+	RepayAmount    string `json:"repayAmount"`
+	CollateralCoin string `json:"collateralCoin"`
+	RepayStatus    string `json:"repayStatus"`
+	RepayTime      string `json:"repayTime"`
+	OrderID        string `json:"orderId"`
+}
