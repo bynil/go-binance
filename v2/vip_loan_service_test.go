@@ -94,7 +94,7 @@ func (s *vipLoanServiceTestSuite) TestBorrow() {
 		LoanAccountID(loanAccountID).
 		LoanCoin(loanCoin).
 		LoanAmount(loanAmount).
-		CollateralAccountId(collateralAccountID).
+		CollateralAccountID(collateralAccountID).
 		CollateralCoin(collateralCoin).
 		LoanTerm(loanTerm).
 		Do(newContext())
@@ -102,12 +102,83 @@ func (s *vipLoanServiceTestSuite) TestBorrow() {
 	r := s.r()
 	r.NoError(err)
 	r.Equal(&VIPLoanBorrowResponse{
-		LoanAccountId:       "12345678",
-		RequestId:           "12345678",
+		LoanAccountID:       "12345678",
+		RequestID:           "12345678",
 		LoanCoin:            "BTC",
 		LoanAmount:          "100.55",
-		CollateralAccountId: "123456781,123456782,123456783",
+		CollateralAccountID: "123456781,123456782,123456783",
 		CollateralCoin:      "BUSD,USDT,ETH",
 		LoanTerm:            "30",
+	}, res)
+}
+
+func (s *vipLoanServiceTestSuite) TestOngoingOrders() {
+	data := []byte(`
+		{
+			"rows": [
+				{
+					"orderId": 100000001,
+					"loanCoin": "BUSD",
+					"totalDebt": "10000",
+					"residualInterest": "10.27687923",
+					"collateralAccountId": "12345678,23456789",
+					"collateralCoin": "BNB,BTC,ETH",
+					"totalCollateralValueAfterHaircut": "25000.27565492",
+					"lockedCollateralValue": "25000.27565492",
+					"currentLTV": "0.57",
+					"expirationTime": 1575018510000
+				}
+			],
+			"total": 1
+		}
+	`)
+	s.mockDo(data, nil)
+	defer s.assertDo()
+
+	orderID := "12345678"
+	collateralAccountID := "123456781,123456782,123456783"
+	loanCoin := "BTC"
+	collateralCoin := "BUSD,USDT,ETH"
+	limit := 20
+	current := 30
+	s.assertReq(func(r *request) {
+		e := newSignedRequest().setParams(params{
+			"orderId":             orderID,
+			"collateralAccountId": collateralAccountID,
+			"loanCoin":            loanCoin,
+			"collateralCoin":      collateralCoin,
+			"current":             current,
+			"limit":               limit,
+		})
+		s.assertRequestEqual(e, r)
+	})
+
+	res, err := s.client.NewVIPLoanOngoingOrdersService().
+		OrderID(orderID).
+		CollateralAccountID(collateralAccountID).
+		LoanCoin(loanCoin).
+		CollateralCoin(collateralCoin).
+		Current(current).
+		Limit(limit).
+		Do(newContext())
+
+	r := s.r()
+	r.NoError(err)
+	r.Equal(&VIPLoanOngoingOrdersResponse{
+		Rows: []VIPLoanOngoingOrder{
+			{
+				OrderID:                          100000001,
+				LoanCoin:                         "BUSD",
+				TotalDebt:                        "10000",
+				ResidualInterest:                 "10.27687923",
+				CollateralAccountID:              "12345678,23456789",
+				CollateralCoin:                   "BNB,BTC,ETH",
+				TotalCollateralValueAfterHaircut: "25000.27565492",
+				LockedCollateralValue:            "25000.27565492",
+				CurrentLTV:                       "0.57",
+				ExpirationTime:                   1575018510000,
+			},
+		},
+		Total: 1,
 	}, res)
 }

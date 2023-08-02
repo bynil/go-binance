@@ -1026,3 +1026,8 @@ func (c *Client) NewVIPLoanRepayService() *VIPLoanRepayService {
 func (c *Client) NewVIPLoanBorrowService() *VIPLoanBorrowService {
 	return &VIPLoanBorrowService{c: c}
 }
+
+// NewVIPLoanOngoingOrdersService create a query request of ongoing orders on VIP loan
+func (c *Client) NewVIPLoanOngoingOrdersService() *VIPLoanOngoingOrdersService {
+	return &VIPLoanOngoingOrdersService{c: c}
+}

@@ -86,7 +86,7 @@ func (s *VIPLoanBorrowService) LoanAmount(v string) *VIPLoanBorrowService {
 	return s
 }
 
-func (s *VIPLoanBorrowService) CollateralAccountId(v string) *VIPLoanBorrowService {
+func (s *VIPLoanBorrowService) CollateralAccountID(v string) *VIPLoanBorrowService {
 	s.collateralAccountIds = append(s.collateralAccountIds, v)
 	return s
 }
@@ -130,11 +130,111 @@ func (s *VIPLoanBorrowService) Do(ctx context.Context) (*VIPLoanBorrowResponse, 
 }
 
 type VIPLoanBorrowResponse struct {
-	LoanAccountId       string `json:"loanAccountId"`
-	RequestId           string `json:"requestId"`
+	LoanAccountID       string `json:"loanAccountId"`
+	RequestID           string `json:"requestId"`
 	LoanCoin            string `json:"loanCoin"`
 	LoanAmount          string `json:"loanAmount"`
-	CollateralAccountId string `json:"collateralAccountId"`
+	CollateralAccountID string `json:"collateralAccountId"`
 	CollateralCoin      string `json:"collateralCoin"`
 	LoanTerm            string `json:"loanTerm"`
+}
+
+// VIPLoanOngoingOrdersService submits a borrowing request for VIP loan.
+//
+// See https://binance-docs.github.io/apidocs/spot/en/#vip-user_data
+type VIPLoanOngoingOrdersService struct {
+	c                   *Client
+	orderID             *string
+	collateralAccountID *string
+	loanCoin            *string
+	collateralCoin      *string
+	current             *int
+	limit               *int
+}
+
+func (s *VIPLoanOngoingOrdersService) OrderID(v string) *VIPLoanOngoingOrdersService {
+	s.orderID = &v
+	return s
+}
+
+func (s *VIPLoanOngoingOrdersService) CollateralAccountID(v string) *VIPLoanOngoingOrdersService {
+	s.collateralAccountID = &v
+	return s
+}
+
+func (s *VIPLoanOngoingOrdersService) LoanCoin(v string) *VIPLoanOngoingOrdersService {
+	s.loanCoin = &v
+	return s
+}
+
+func (s *VIPLoanOngoingOrdersService) CollateralCoin(v string) *VIPLoanOngoingOrdersService {
+	s.collateralCoin = &v
+	return s
+}
+
+func (s *VIPLoanOngoingOrdersService) Current(v int) *VIPLoanOngoingOrdersService {
+	s.current = &v
+	return s
+}
+
+func (s *VIPLoanOngoingOrdersService) Limit(v int) *VIPLoanOngoingOrdersService {
+	s.limit = &v
+	return s
+}
+
+// Do sends the request.
+func (s *VIPLoanOngoingOrdersService) Do(ctx context.Context) (*VIPLoanOngoingOrdersResponse, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/sapi/v1/loan/vip/ongoing/orders",
+		secType:  secTypeSigned,
+	}
+	if s.orderID != nil {
+		r.setParam("orderId", *s.orderID)
+	}
+	if s.collateralAccountID != nil {
+		r.setParam("collateralAccountId", *s.collateralAccountID)
+	}
+	if s.loanCoin != nil {
+		r.setParam("loanCoin", *s.loanCoin)
+	}
+	if s.collateralCoin != nil {
+		r.setParam("collateralCoin", *s.collateralCoin)
+	}
+	if s.current != nil {
+		r.setParam("current", *s.current)
+	}
+	if s.limit != nil {
+		r.setParam("limit", *s.limit)
+	}
+
+	data, err := s.c.callAPI(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &VIPLoanOngoingOrdersResponse{}
+	if err := json.Unmarshal(data, res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+type VIPLoanOngoingOrdersResponse struct {
+	Rows  []VIPLoanOngoingOrder `json:"rows"`
+	Total int                   `json:"total"`
+}
+
+type VIPLoanOngoingOrder struct {
+	OrderID                          int    `json:"orderId"`
+	LoanCoin                         string `json:"loanCoin"`
+	TotalDebt                        string `json:"totalDebt"`
+	ResidualInterest                 string `json:"residualInterest"`
+	CollateralAccountID              string `json:"collateralAccountId"`
+	CollateralCoin                   string `json:"collateralCoin"`
+	TotalCollateralValueAfterHaircut string `json:"totalCollateralValueAfterHaircut"`
+	LockedCollateralValue            string `json:"lockedCollateralValue"`
+	CurrentLTV                       string `json:"currentLTV"`
+	ExpirationTime                   int64  `json:"expirationTime"`
 }
